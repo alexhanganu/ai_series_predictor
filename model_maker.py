@@ -1,57 +1,49 @@
 
 """
-scripts aims to train models
-that aims to predict future values
+scripts trains models using time-series
+and predicts future values
 
 
 Best machine learning models for time series forecasting
 
-Naïve model. ...
-Exponential smoothing model. ...
-ARIMA/SARIMA. ...
-Linear regression method. ...
-Multi-Layer Perceptron (MLP) ...
-Recurrent Neural Network (RNN) ...
-Long Short-Term Memory (LSTM) ... 
+Naïve model.
+Exponential smoothing model.
+ARIMA/SARIMA.
+Linear regression method.
+Multi-Layer Perceptron (MLP)
+Recurrent Neural Network (RNN)
+Long Short-Term Memory (LSTM)
 
-There are various approaches and models within generative 
-AI that can be utilized for time series analysis. Some common ones include:
+Generative AI Models good for time series:
+Autoregressive Models:
+	Generate sequences by modeling the conditional 
+	probability of each data point given the previous data points.
+		ARIMA: Autoregressive Integrated Moving Average 
+		SARIMA: Seasonal Autoregressive Integrated Moving-Average
 
-Autoregressive Models: These models generate sequences by 
-modeling the conditional probability of each data point given 
-the previous data points. Examples include Autoregressive Integrated 
-Moving Average (ARIMA) and Seasonal Autoregressive Integrated Moving-Average (SARIMA).
+RNN / Recurrent Neural Networks:
+	Good for forecasting and anomaly detection.
+	NN (neural networks) classs that has recurrent connections,
+	allowing them to maintain a memory of previous inputs.
+	* LSTM: Long Short-Term Memory Networks: is a specific type of 
+		RNN that addresses the vanishing gradient problem, making it more 
+		effective in capturing long-term dependencies in time series data.
 
-Recurrent Neural Networks (RNNs): RNNs are a class of neural 
-etworks that have recurrent connections, allowing them to maintain a 
-memory of previous inputs. They are well-suited for sequential data 
-like time series and can be used for tasks such as forecasting and anomaly detection.
+GAN / Generative Adversarial Networks:
+	Good for synthetic time series data, and data augmentation.
+	GANs are a type of generative model that consists of two neural
+	networks, a generator, and a discriminator.
 
-Long Short-Term Memory (LSTM) Networks: LSTM is a specific type of 
-RNN that addresses the vanishing gradient problem, making it more 
-effective in capturing long-term dependencies in time series data.
+VAE / Variational Autoencoders:
+	Good for anomaly detection and missing data imputation.
+	VAEs are another type of generative model that can learn a probabilistic
+	representation of the input data.
 
-Generative Adversarial Networks (GANs): GANs are a type of generative 
-model that consists of two neural networks, a generator, and a 
-discriminator. GANs have been applied to generate synthetic time series 
-ata, and they can also be used for tasks like data augmentation.
-
-Variational Autoencoders (VAEs): VAEs are another type of generative 
-model that can learn a probabilistic representation of the input data. 
-They have been applied to time series data for tasks such as anomaly 
-detection and missing data imputation.
-
-Transformer Models: Transformers, originally developed for natural 
-language processing, have shown promise in processing sequential data, 
-including time series. They can capture long-range dependencies and 
-are well-suited for parallel computation.
-
-The choice of which generative AI model to use depends on the 
-specific task and characteristics of the time series data. Some tasks 
-include prediction, anomaly detection, data augmentation, imputation 
-of missing values, and even synthesis of new time series samples 
-that share characteristics with the original data.
-
+Transformer Models:
+	Good for parallel computation
+	Transformers, originally developed for natural language processing,
+	have shown promise in processing sequential data, 
+	including time series. They can capture long-range dependencies.
 
 """
 import os
@@ -63,9 +55,6 @@ from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense
-
-from . import data_management as dm
-from . import definitions
 
 #==================================================================================
 #==================================================================================
