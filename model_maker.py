@@ -168,7 +168,7 @@ def prepare_data_4modelling(data,
 #==================================================================================
 
 def predict_tick_with_correlations(data, look_back, nr_vals_2predict,
-                                   user = "default"):
+                                   p_models):
     """Use the trained model to make predictions on a new grid of n columns
     Args:
         data = pandas.DataFrame()
@@ -178,7 +178,6 @@ def predict_tick_with_correlations(data, look_back, nr_vals_2predict,
         predicted_values: list()
     """
     # Prepare new data for prediction
-    _, _, _, p_models, _ = dm.get_path_sourcedata(user)
     model_name = f'model.keras'
     path_2save_model = os.path.join(p_models, model_name)
 
@@ -281,7 +280,7 @@ def get_predicted_data(ticker,
 
 def modmak(df,
            ticker,
-           user,
+           p_models,
            look_back = 10):
     """
     Creates models/ AI brains
@@ -290,7 +289,6 @@ def modmak(df,
     Return:
         saves model to ah h5 file
     """
-    _, _, _, p_models, _ = dm.get_path_sourcedata(user)
     path_2save_model = os.path.join(p_models, f'lstm_{ticker}.keras')
     # Convert the "value" column to a NumPy array
     data = df['Close'].values
@@ -322,13 +320,20 @@ def modmak(df,
 
 
     model = model_make_lstm(X_train, y_train,
-                                     path_2save_model,
-                                     dl_input_shape = (look_back, 1),
-                                     dl_units = 50,
-                                     dense_units = (1,),
-                                     epochs = 100,
-                                     train_batch_size = 1)
+                             path_2save_model,
+                             dl_input_shape = (look_back, 1),
+                             dl_units = 50,
+                             dense_units = (1,),
+                             epochs = 100,
+                             train_batch_size = 1)
+    # Reshape input data to match LSTM input shape
+    X_new = numpy.reshape(X_new, (X_new.shape[0],
+                                  X_new.shape[1],
+                                  data_np.shape[1]))  # Assuming n columns
 
+    # Make predictions using the trained model
+    predicted_values = model.predict(X_new)
+    print(f"predicted value: {predicted_values}")
     # denormalized_predictions = scaler.inverse_transform(predictions)
     # denormalized_y_test = scaler.inverse_transform(y_test.reshape(-1, 1))
 
