@@ -167,11 +167,11 @@ def prepare_data_4modelling(data,
 #==================================================================================
 #==================================================================================
 
-def predict_tick_with_correlations(data, look_back, nr_vals_2predict,
+def predict_tick_with_correlations(dict_with_data, look_back, nr_vals_2predict,
                                    p_models):
     """Use the trained model to make predictions on a new grid of n columns
     Args:
-        data = pandas.DataFrame()
+        dict_with_data = dictionary with pandas.DataFrame() data for each ticker
         look_back = 
         nr_vals_2predict =
     Return:
@@ -196,8 +196,8 @@ def predict_tick_with_correlations(data, look_back, nr_vals_2predict,
                            train_batch_size = 32)
 
     X_new, _ = prepare_data_4modelling(data_np,
-                                                 look_back,
-                                                 nr_vals_2predict)
+                                         look_back,
+                                         nr_vals_2predict)
 
     # Reshape input data to match LSTM input shape
     X_new = numpy.reshape(X_new, (X_new.shape[0],
@@ -326,7 +326,11 @@ def modmak(df,
                              dense_units = (1,),
                              epochs = 100,
                              train_batch_size = 1)
+
     # Reshape input data to match LSTM input shape
+    X_new, _ = prepare_data_4modelling(data_np,
+                                                 look_back,
+                                                 nr_vals_2predict)
     X_new = numpy.reshape(X_new, (X_new.shape[0],
                                   X_new.shape[1],
                                   data_np.shape[1]))  # Assuming n columns
