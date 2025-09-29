@@ -178,8 +178,12 @@ def predict_tick_with_correlations(dict_with_data, look_back, nr_vals_2predict,
         predicted_values: list()
     """
     # Prepare new data for prediction
+    column_to_predict = "Close"
     model_name = f'model.keras'
     path_2save_model = os.path.join(p_models, model_name)
+    data = pandas.DataFrame()
+    for ticker in dict_with_data:
+        data[f"{ticker}_{column_to_predict}"] = dict_with_data[ticker][column_to_predict]
 
     data_np = data.values
     X, y = prepare_data_4modelling(data_np,
