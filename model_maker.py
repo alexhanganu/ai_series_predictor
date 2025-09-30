@@ -210,8 +210,7 @@ def predict_tick_with_correlations(dict_with_data, look_back, nr_vals_2predict,
 
     # Make predictions using the trained model
     predicted_values = model.predict(X_new)
-
-    return predicted_values[-1:]
+    print(f"    NEXT predicted value for: {list(dict_with_data.keys())[0]} is: {predicted_values[-1:]}")
 
 
 def get_predicted_data(ticker,
