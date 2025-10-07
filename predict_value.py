@@ -93,6 +93,49 @@ def model_make_lstm(X, y,
     return model
 
 
+def model_make_ilqr(X,
+                    column_to_predict = 0,
+                    num_steps_to_predict = 5):
+    """model based on the iLQR = Iterative linear quadratic regulator algorithm
+    Args:
+        X = numpy.array
+        column_to_predict = int() number of columns to predict
+        num_steps_to_predict = int(), number of steps to predict
+        must verify cost
+    """
+    try:
+        from ilqr import iLQR
+
+        # Define the function to compute the cost
+        def cost(x, u):
+            # function to compute the cost function
+            # will assume a quadratic cost
+            return numpy.sum((x[:, column_to_predict] - u) ** 2)
+
+        # Define the initial guess for the control sequence
+        initial_guess = numpy.zeros(num_steps_to_predict)
+
+        # Define the iLQR optimizer
+        optimizer = iLQR(X[:, :grid.shape[1]], cost)
+
+        # Run the optimization to find the optimal control sequence
+        u_optimal, x_optimal = optimizer.fit(initial_guess)
+
+        # Predict the next 5 values of the column using the optimal control sequence
+        predicted_values = []
+        current_state = X[-1, :]
+        for u in u_optimal:
+            # Apply control sequence to predict next state
+            current_state = current_state + u
+            predicted_values.append(current_state[column_to_predict])
+
+        return predicted_values
+
+    except ImportError:
+        print("            cannot import ilqr module")
+        return list()
+
+
 #==================================================================================
 #==================================================================================
 # PREPARING DATA for model training
@@ -193,48 +236,66 @@ def predict_tick_with_correlations(dict_with_data, look_back, nr_vals_2predict,
     return predicted_values_unscaled
 
 
-# def predict_tick_with_correlations(dict_with_data, look_back, nr_vals_2predict,
-#                                    p_models):
-#     """Use the trained model to make predictions on a new grid of n columns
-#     Args:
-#         dict_with_data = dictionary with pandas.DataFrame() data for each ticker
-#         look_back = 
-#         nr_vals_2predict =
-#     Return:
-#         predicted_values: list()
-#     """
-#     # Prepare new data for prediction
-#     column_to_predict = "Close"
-#     model_name = f'model.keras'
-#     path_2save_model = os.path.join(p_models, model_name)
-#     data = pandas.DataFrame()
-#     for ticker in dict_with_data:
-#         data[f"{ticker}_{column_to_predict}"] = dict_with_data[ticker][column_to_predict]
 
-#     data_np = data.values
-#     X, y = prepare_data_4modelling(data_np,
-#                                    look_back,
-#                                    nr_vals_2predict)
-#     # Reshape input data to match LSTM input shape
-#     X = numpy.reshape(X, (X.shape[0], X.shape[1], X.shape[-1]))  # Assuming n columns
-#     model = model_make_lstm(X, y,
-#                            path_2save_model,
-#                            dl_input_shape = (look_back, X.shape[-1]),
-#                            dl_units = 50,
-#                            dense_units = (nr_vals_2predict,),
-#                            epochs = 100,
-#                            train_batch_size = 32)
+def predict_tick_singular(df,
+                          ticker,
+                          p_models,
+                          look_back = 10):
+    """
+    Creates models/ AI brains
+    Args:
+        look_back: number of previous time steps to use for prediction
+    Return:
+        saves model to ah h5 file
+    """
+    path_2save_model = os.path.join(p_models, f'lstm_{ticker}.keras')
+    # Convert the "value" column to a NumPy array
+    data = df['Close'].values
 
-#     X_new, _ = prepare_data_4modelling(data_np,
-#                                          look_back,
-#                                          nr_vals_2predict)
+    # # Normalize the data if needed
+    # scaler = MinMaxScaler(feature_range=(0, 1))
+    # normalized_data = scaler.fit_transform(data)
 
-#     # Reshape input data to match LSTM input shape
-#     X_new = numpy.reshape(X_new, (X_new.shape[0],
-#                                   X_new.shape[1],
-#                                   data_np.shape[1]))  # Assuming n columns
 
-#     # Make predictions using the trained model
-#     predicted_values = model.predict(X_new)
-#     print(f"    NEXT predicted value for: {list(dict_with_data.keys())[0]} is: {predicted_values[-1:]}")
+    # Initialize lists to store training data
+    X_train = []
+    y_train = []
 
+    # Iterate through the data to create training sequences
+    for i in range(len(data) - look_back):
+        # Extract a sequence of look_back time steps as input
+        X_train.append(data[i : i + look_back])
+        # The next value is the target for prediction
+        y_train.append(data[i + look_back])
+
+    # Convert the lists to NumPy arrays
+    X_train = numpy.array(X_train)
+    y_train = numpy.array(y_train)
+
+    # Reshape X_train to match the input shape expected by the LSTM model
+    # X_train = numpy.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+    X_train = numpy.reshape(X_train, (X_train.shape[0], look_back, 1))
+    # Now, X_train contains the input sequences and y_train contains the target values
+
+
+    model = model_make_lstm(X_train, y_train,
+                             path_2save_model,
+                             dl_input_shape = (look_back, 1),
+                             dl_units = 50,
+                             dense_units = (1,),
+                             epochs = 100,
+                             train_batch_size = 1)
+
+    # Reshape input data to match LSTM input shape
+    X_new, _ = prepare_data_4modelling(data_np,
+                                                 look_back,
+                                                 nr_vals_2predict)
+    X_new = numpy.reshape(X_new, (X_new.shape[0],
+                                  X_new.shape[1],
+                                  data_np.shape[1]))  # Assuming n columns
+
+    # Make predictions using the trained model
+    predicted_values = model.predict(X_new)
+    print(f"predicted value: {predicted_values}")
+    # denormalized_predictions = scaler.inverse_transform(predictions)
+    # denormalized_y_test = scaler.inverse_transform(y_test.reshape(-1, 1))
